@@ -17,7 +17,7 @@ chmod +x go.sh
 
 Now it's time to configure the `.env` accordingly (this is an illustrative `.env` file):
 
-> [!CAVEAT]
+> [!CAUTION]
 > The private keys below are placeholders and should never be used in a production environment!
 
 ```txt
