@@ -63,7 +63,7 @@ build_transaction() {
 
     cast mktx --private-key "$from_pk" \
         --rpc-url "$PROVIDER_URL" \
-        "$to_address" $([[ -n "$data" ]] && echo "$data") \
+        "$to_address" $( [[ -n "$data" ]] && echo -n "$data" ) \
         --value "$value" \
         --nonce "$nonce" \
         --gas-price "$gas_price" \
@@ -82,11 +82,11 @@ create_bundle() {
     done
 
     # Join the transaction hashes into a comma-separated string.
-    local txs_string=$(IFS=,; echo "${txs[*]}")
+    local txs_string=$(IFS=,; echo -n "${txs[*]}")
 
     # Create the bundle JSON.
     BUNDLE_JSON="{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"eth_sendBundle\",\"params\":[{\"txs\":[$txs_string],\"blockNumber\":\"$(cast to-hex "$BLOCK_NUMBER")\",\"minTimestamp\":0}]}"
-    echo "$BUNDLE_JSON"
+    echo -n "$BUNDLE_JSON"
 }
 
 # Utility function to send the bundle.
@@ -96,7 +96,7 @@ send_bundle() {
 
     curl -X POST -H "Content-Type: application/json" \
          -H "X-Flashbots-Signature: $FLASHBOTS_WALLET:$flashbots_signature" \
-         -d "$bundle_json" "$RELAY_URL"
+         -d "$(echo -n "$bundle_json")" "$RELAY_URL"
 }
 
 # Main loop; customise as needed. Resubmits the bundle every 8 seconds.
@@ -138,6 +138,7 @@ while true; do
 
     # Create the Flashbots signature and send the bundle.
     FLASHBOTS_SIGNATURE=$(create_flashbots_signature "$BUNDLE_JSON" "$FLASHBOTS_SIGNATURE_PK")
+    echo "$FLASHBOTS_WALLET:$FLASHBOTS_SIGNATURE" > flashbots_signature.txt
     send_bundle "$BUNDLE_JSON" "$FLASHBOTS_SIGNATURE"
 
     echo "Waiting for 8 seconds before next iteration..."
