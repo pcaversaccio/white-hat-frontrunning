@@ -5,7 +5,7 @@ White hat frontrunning [script](./go.sh) to outpace hackers and secure funds fro
 ## Usage
 
 > [!NOTE]
-> Ensure that [`cast`] is installed locally. For installation instructions, refer to this [guide](https://book.getfoundry.sh/getting-started/installation).
+> Ensure that `cast` is installed locally. For installation instructions, refer to this [guide](https://book.getfoundry.sh/getting-started/installation).
 
 First, modify the main loop in the [script](./go.sh). At present, it's set to send gas to a victim wallet and transfer a specific token. Since the main loop needs to be tailored for each rescue, please review and adjust it carefully.
 
