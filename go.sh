@@ -10,7 +10,7 @@ else
     exit 1
 fi
 
-# Function to check if a variable is set without exposing its value.
+# Utility function to check if a variable is set without exposing its value.
 check_var() {
     if [ -z "${!1}" ]; then
         echo "Error: $1 is not set in the .env file"
@@ -30,10 +30,16 @@ check_var "TARGET_CONTRACT"
 
 echo "Private keys and RPC URLs loaded successfully!"
 
+# Utility function to derive a wallet address.
+derive_wallet() {
+    local pk="$1"
+    cast wallet address --private-key "$pk"
+}
+
 # Derive the wallets.
-VICTIM_WALLET=$(cast wallet address "$VICTIM_PK")
-GAS_WALLET=$(cast wallet address "$GAS_PK")
-FLASHBOTS_WALLET=$(cast wallet address "$FLASHBOTS_SIGNATURE_PK")
+VICTIM_WALLET=$(derive_wallet "$VICTIM_PK")
+GAS_WALLET=$(derive_wallet "$GAS_PK")
+FLASHBOTS_WALLET=$(derive_wallet "$FLASHBOTS_SIGNATURE_PK")
 
 # Utility function to create the Flashbots signature (https://docs.flashbots.net/flashbots-auction/advanced/rpc-endpoint#authentication).
 create_flashbots_signature() {
