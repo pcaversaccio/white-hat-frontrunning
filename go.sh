@@ -20,13 +20,19 @@ check_var() {
     fi
 }
 
+vars=(
+    PROVIDER_URL
+    RELAY_URL
+    VICTIM_PK
+    GAS_PK
+    FLASHBOTS_SIGNATURE_PK
+    TARGET_CONTRACT
+)
+
 # Check if the required environment variables are set.
-check_var "PROVIDER_URL"
-check_var "RELAY_URL"
-check_var "VICTIM_PK"
-check_var "GAS_PK"
-check_var "FLASHBOTS_SIGNATURE_PK"
-check_var "TARGET_CONTRACT"
+for var in "${vars[@]}"; do
+    check_var "$var"
+done
 
 echo "Private keys and RPC URLs loaded successfully!"
 
@@ -46,6 +52,7 @@ create_flashbots_signature() {
     local payload="$1"
     local private_key="$2"
     local payload_keccak=$(cast keccak "$payload")
+    # See here: https://book.getfoundry.sh/reference/cli/cast/hash-message?highlight=hash-#cast-hash-message.
     local payload_hashed=$(cast hash-message "${payload_keccak:2}")
     local signature=$(cast wallet sign "$payload_hashed" --private-key "$private_key" --no-hash | tr -d '\n')
     echo "$signature"
@@ -61,6 +68,8 @@ build_transaction() {
     local gas_price="$6"
     local data="${7}"
 
+    # Note that `--gas-price` is the maximum fee per gas for EIP-1559
+    # transactions. See here: https://book.getfoundry.sh/reference/cli/cast/mktx.
     cast mktx --private-key "$from_pk" \
         --rpc-url "$PROVIDER_URL" \
         "$to_address" $( [[ -n "$data" ]] && echo -n "$data" ) \
@@ -82,6 +91,10 @@ create_bundle() {
     done
 
     # Join the transaction hashes into a comma-separated string.
+    # Note that `IFS` stands for "Internal Field Separator". It is
+    # a special variable in Bash that determines how Bash recognises
+    # word boundaries. By setting `IFS=,` we instruct Bash to use a
+    # comma as a separator for words in the subsequent command.
     local txs_string=$(IFS=,; echo -n "${txs[*]}")
 
     # Create the bundle JSON.
@@ -98,6 +111,10 @@ send_bundle() {
          -H "X-Flashbots-Signature: $FLASHBOTS_WALLET:$flashbots_signature" \
          -d "$(echo -n "$bundle_json")" "$RELAY_URL"
 }
+
+#####################################
+# CUSTOMISE ACCORDING TO YOUR NEEDS #
+#####################################
 
 # Main loop; customise as needed. Resubmits the bundle every 8 seconds.
 while true; do
@@ -121,10 +138,10 @@ while true; do
     VICTIM_NONCE=$(cast nonce "$VICTIM_WALLET" --rpc-url "$PROVIDER_URL")
 
     # Build the transactions.
-    # Transfer of ETH to the victim wallet.
+    # Example transfer of ETH to the victim wallet.
     TX1=$(build_transaction "$GAS_PK" "$VICTIM_WALLET" "$GAS_TO_FILL" "$GAS_NONCE" "$TRANSFER_ETH" "$GAS_PRICE")
 
-    # Transfer of 1 USDC (remember that USDC has 6 decimals) to rescue wallet.
+    # Example transfer of 1 USDC (remember that USDC has 6 decimals) to rescue wallet.
     PAYLOAD=$(cast calldata "transfer(address,uint256)" "$GAS_WALLET" 1000000)
     TX2=$(build_transaction "$VICTIM_PK" "$TARGET_CONTRACT" 0 "$VICTIM_NONCE" "$TRANSFER_TOKEN_GAS" "$GAS_PRICE" "$PAYLOAD")
 
@@ -138,7 +155,6 @@ while true; do
 
     # Create the Flashbots signature and send the bundle.
     FLASHBOTS_SIGNATURE=$(create_flashbots_signature "$BUNDLE_JSON" "$FLASHBOTS_SIGNATURE_PK")
-    echo "$FLASHBOTS_WALLET:$FLASHBOTS_SIGNATURE" > flashbots_signature.txt
     send_bundle "$BUNDLE_JSON" "$FLASHBOTS_SIGNATURE"
 
     echo "Waiting for 8 seconds before next iteration..."
