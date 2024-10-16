@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -euo pipefail
+
 ############################################
 # Skills are what matters. Not cheap talk. #
 ############################################
