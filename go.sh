@@ -1,5 +1,12 @@
 #!/bin/bash
 
+############################################
+# Skills are what matters. Not cheap talk. #
+############################################
+
+# @license GNU Affero General Public License v3.0 only
+# @author pcaversaccio
+
 # Load environment variables from `.env` file.
 if [ -f .env ]; then
     set -a
@@ -26,7 +33,7 @@ vars=(
     VICTIM_PK
     GAS_PK
     FLASHBOTS_SIGNATURE_PK
-    TARGET_CONTRACT
+    TOKEN_CONTRACT
 )
 
 # Check if the required environment variables are set.
@@ -52,8 +59,7 @@ create_flashbots_signature() {
     local payload="$1"
     local private_key="$2"
     local payload_keccak=$(cast keccak "$payload")
-    # See here: https://book.getfoundry.sh/reference/cli/cast/hash-message?highlight=hash-#cast-hash-message.
-    local payload_hashed=$(cast hash-message "${payload_keccak:2}")
+    local payload_hashed=$(chisel eval 'keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n66","'$payload_keccak'"))' | awk '/Data:/ {gsub(/\x1b\[[0-9;]*m/, "", $3); print $3}')
     local signature=$(cast wallet sign "$payload_hashed" --private-key "$private_key" --no-hash | tr -d '\n')
     echo "$signature"
 }
@@ -105,10 +111,22 @@ create_bundle() {
 # Utility function to send the bundle.
 send_bundle() {
     local bundle_json="$1"
-    local flashbots_signature="$2"
 
-    curl -X POST -H "Content-Type: application/json" \
-         -H "X-Flashbots-Signature: $FLASHBOTS_WALLET:$flashbots_signature" \
+    # Prepare the common headers.
+    local headers=(
+        -H "Content-Type: application/json"
+    )
+
+    # Check if `RELAY_URL` contains `flashbots.net`. Flashbots relays require
+    # a specific signature header for authentication. Other relays may not
+    # accept or require this header, so we only include it for Flashbots.
+    if [[ "$RELAY_URL" == *"flashbots.net"* ]]; then
+        local flashbots_signature=$(create_flashbots_signature "$bundle_json" "$FLASHBOTS_SIGNATURE_PK")
+        headers+=(-H "X-Flashbots-Signature: $FLASHBOTS_WALLET:$flashbots_signature")
+    fi
+
+    # Send the request with the appropriate headers.
+    curl -X POST "${headers[@]}" \
          -d "$(echo -n "$bundle_json")" "$RELAY_URL"
 }
 
@@ -142,8 +160,10 @@ while true; do
     TX1=$(build_transaction "$GAS_PK" "$VICTIM_WALLET" "$GAS_TO_FILL" "$GAS_NONCE" "$TRANSFER_ETH" "$GAS_PRICE")
 
     # Example transfer of 1 USDC (remember that USDC has 6 decimals) to rescue wallet.
-    PAYLOAD=$(cast calldata "transfer(address,uint256)" "$GAS_WALLET" 1000000)
-    TX2=$(build_transaction "$VICTIM_PK" "$TARGET_CONTRACT" 0 "$VICTIM_NONCE" "$TRANSFER_TOKEN_GAS" "$GAS_PRICE" "$PAYLOAD")
+    TRANSFER_TOKEN_AMOUNT=1000000
+    RECIPIENT_WALLET="$GAS_WALLET"
+    PAYLOAD=$(cast calldata "transfer(address,uint256)" "$RECIPIENT_WALLET" "$TRANSFER_TOKEN_AMOUNT")
+    TX2=$(build_transaction "$VICTIM_PK" "$TOKEN_CONTRACT" 0 "$VICTIM_NONCE" "$TRANSFER_TOKEN_GAS" "$GAS_PRICE" "$PAYLOAD")
 
     echo "TX1: $TX1"
     echo "TX2: $TX2"
@@ -153,9 +173,8 @@ while true; do
     echo -e "Bundle JSON:\n$BUNDLE_JSON"
     echo "$BUNDLE_JSON" > bundle.json
 
-    # Create the Flashbots signature and send the bundle.
-    FLASHBOTS_SIGNATURE=$(create_flashbots_signature "$BUNDLE_JSON" "$FLASHBOTS_SIGNATURE_PK")
-    send_bundle "$BUNDLE_JSON" "$FLASHBOTS_SIGNATURE"
+    # Send the bundle.
+    send_bundle "$BUNDLE_JSON"
 
     echo "Waiting for 8 seconds before next iteration..."
     sleep 8
