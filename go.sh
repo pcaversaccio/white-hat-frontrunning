@@ -1,13 +1,17 @@
 #!/bin/bash
 
-set -euo pipefail
-
 ############################################
 # Skills are what matters. Not cheap talk. #
 ############################################
 
 # @license GNU Affero General Public License v3.0 only
 # @author pcaversaccio
+
+# Enable strict error handling:
+# -e: Exit immediately if a command exits with a non-zero status.
+# -u: Treat unset variables as an error and exit.
+# -o pipefail: Return the exit status of the first failed command in a pipeline.
+set -euo pipefail
 
 # Load environment variables from `.env` file.
 if [ -f .env ]; then
