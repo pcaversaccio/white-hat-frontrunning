@@ -78,7 +78,7 @@ build_transaction() {
     local nonce="$4"
     local gas_limit="$5"
     local gas_price="$6"
-    local data="${7}"
+    local data="${7:-}"
 
     # Note that `--gas-price` is the maximum fee per gas for EIP-1559
     # transactions. See here: https://book.getfoundry.sh/reference/cli/cast/mktx.
