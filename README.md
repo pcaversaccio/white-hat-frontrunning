@@ -30,7 +30,7 @@ TOKEN_CONTRACT="0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
 ```
 
 > [!TIP]
-> When submitting bundles to Flashbots, they are signed with your `FLASHBOTS_SIGNATURE_PK` key, enabling Flashbots to verify your identity and track your [reputation](https://docs.flashbots.net/flashbots-auction/advanced/reputation) over time. This reputation system is designed to safeguard the infrastructure from threats such as DDoS attacks. It's important to note that this key **does not** handle any funds and is **not** required to be the primary Ethereum key used for transaction authentication. Its sole purpose is to establish your identity with Flashbots. You can use any ECDSA-secp256k1 key for this, and if you need to create a new one, you can use [`cast wallet new`](https://book.getfoundry.sh/reference/cast/cast-wallet-new).
+> When submitting bundles to Flashbots, they are signed with your `FLASHBOTS_SIGNATURE_PK` key, enabling Flashbots to verify your identity and track your [reputation](https://docs.flashbots.net/flashbots-auction/advanced/reputation) over time. This reputation system is designed to safeguard the infrastructure from threats such as DDoS attacks. It's important to note that this key **does not** handle any funds and is **not** required to be the primary Ethereum key used for transaction authentication. Its sole purpose is to establish your identity with Flashbots. You can use any ECDSA `secp256k1` key for this, and if you need to create a new one, you can use [`cast wallet new`](https://book.getfoundry.sh/reference/cast/cast-wallet-new).
 
 Finally, execute the script:
 
