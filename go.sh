@@ -65,7 +65,7 @@ create_flashbots_signature() {
     local payload="$1"
     local private_key="$2"
     local payload_keccak=$(cast keccak "$payload")
-    local payload_hashed=$(chisel eval 'keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n66","'$payload_keccak'"))' | awk '/Data:/ {gsub(/\x1b\[[0-9;]*m/, "", $3); print $3}')
+    local payload_hashed=$(cast hash-message "$payload_keccak")
     local signature=$(cast wallet sign "$payload_hashed" --private-key "$private_key" --no-hash | tr -d '\n')
     echo "$signature"
 }
