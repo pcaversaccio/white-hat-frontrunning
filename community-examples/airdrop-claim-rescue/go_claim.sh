@@ -151,7 +151,7 @@ while true; do
     # Set the gas limits for the different transfers.
     TRANSFER_ETH=21000
     TRANSFER_TOKEN_GAS=80000
-    # Example gas needed for Puffer Airdrop claim
+    # Set the gas needed for the Puffer airdrop claim.
     CLAIM_AIRDROP_GAS=170000
 
     # Calculate the gas cost to fill and convert to ether.
@@ -170,13 +170,13 @@ while true; do
     # Example transfer of ETH to the victim wallet.
     TX1=$(build_transaction "$GAS_PK" "$VICTIM_WALLET" "$GAS_TO_FILL" "$GAS_NONCE" "$TRANSFER_ETH" "$GAS_PRICE")
 
-    # Claim Puffer airdrop
-    # The payload can be retrieved from the Airdrop website. 
-    # Initiate the airdrop claim with Victim wallet and copy the payload from the HEX tab.
-    PAYLOAD="0xd4b52e" 
+    # Claim the Puffer airdrop.
+    # The payload can be retrieved from the airdrop website.
+    # Initiate the airdrop claim with the victim wallet and copy the payload from the "HEX" tab.
+    PAYLOAD="0xd4b52e"
     TX2=$(build_transaction "$VICTIM_PK" "$AIRDROP_CONTRACT" 0 "$VICTIM_NONCE" "$CLAIM_AIRDROP_GAS" "$GAS_PRICE" "$PAYLOAD")
 
-    # Example transfer of 70 Puffer (Puffer has 18 decimals) claimed from airdrop to rescue wallet.
+    # An example transfer of 70 Puffer (with 18 decimals) claimed from the airdrop to the rescue wallet.
     TRANSFER_TOKEN_AMOUNT=70000000000000000000
     PAYLOAD=$(cast calldata "transfer(address,uint256)" "$RECIPIENT_WALLET" "$TRANSFER_TOKEN_AMOUNT")
     TX3=$(build_transaction "$VICTIM_PK" "$TOKEN_CONTRACT" 0 "$VICTIM_NEXT_NONCE" "$TRANSFER_TOKEN_GAS" "$GAS_PRICE" "$PAYLOAD")

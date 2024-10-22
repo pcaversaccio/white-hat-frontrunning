@@ -37,3 +37,7 @@ Finally, execute the script:
 ```console
 ./go.sh
 ```
+
+## Community Examples
+
+The [`community-examples/`](./community-examples/) directory contains customised versions of the primary [`go.sh`](./go.sh) script, tailored for a variety of rescue scenarios.
