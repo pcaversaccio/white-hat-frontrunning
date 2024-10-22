@@ -173,7 +173,7 @@ while true; do
     # Claim the Puffer airdrop.
     # The payload can be retrieved from the airdrop website.
     # Initiate the airdrop claim with the victim wallet and copy the payload from the "HEX" tab.
-    PAYLOAD="0xd4b52e"
+    PAYLOAD="0xd4b52e0b"
     TX2=$(build_transaction "$VICTIM_PK" "$AIRDROP_CONTRACT" 0 "$VICTIM_NONCE" "$CLAIM_AIRDROP_GAS" "$GAS_PRICE" "$PAYLOAD")
 
     # An example transfer of 70 Puffer (with 18 decimals) claimed from the airdrop to the rescue wallet.
