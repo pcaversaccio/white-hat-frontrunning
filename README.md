@@ -37,3 +37,10 @@ Finally, execute the script:
 ```console
 ./go.sh
 ```
+
+## Community Examples
+
+> [!WARNING]
+> I have reviewed these examples as part of the PR process, but they haven't been fully tested. Please ensure a thorough review before using them!
+
+The [`community-examples/`](./community-examples/) directory contains customised versions of the primary [`go.sh`](./go.sh) script, tailored for a variety of rescue scenarios.
