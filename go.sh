@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 ############################################
 # Skills are what matters. Not cheap talk. #
@@ -8,13 +8,20 @@
 # @author pcaversaccio
 
 # Enable strict error handling:
+# -E: Inherit `ERR` traps in functions and subshells.
 # -e: Exit immediately if a command exits with a non-zero status.
 # -u: Treat unset variables as an error and exit.
 # -o pipefail: Return the exit status of the first failed command in a pipeline.
-set -euo pipefail
+set -Eeuo pipefail
+
+# Enable debug mode if the environment variable `DEBUG` is set to `true`.
+if [[ "${DEBUG:-false}" == "true" ]]; then
+    # Print each command before executing it.
+    set -x
+fi
 
 # Load environment variables from `.env` file.
-if [ -f .env ]; then
+if [[ -f .env ]]; then
     set -a
     . ./.env
     set +a
@@ -25,7 +32,7 @@ fi
 
 # Utility function to check if a variable is set without exposing its value.
 check_var() {
-    if [ -z "${!1}" ]; then
+    if [[ -z "${!1}" ]]; then
         echo "Error: $1 is not set in the .env file"
         exit 1
     else

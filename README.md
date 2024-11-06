@@ -41,6 +41,8 @@ Finally, execute the [script](./go.sh):
 ./go.sh
 ```
 
+To enable _debug mode_, set the `DEBUG` environment variable to `true` before running the [script](./go.sh), i.e. `DEBUG=true ./go.sh`. This will print each command before it is executed, which is helpful when troubleshooting.
+
 ## Community Examples
 
 > [!WARNING]
