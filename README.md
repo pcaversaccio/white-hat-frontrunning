@@ -1,5 +1,7 @@
 # White Hat Frontrunning
 
+[![License: AGPL-3.0-only](https://img.shields.io/badge/License-AGPL--3.0--only-blue)](https://www.gnu.org/licenses/agpl-3.0)
+
 White hat frontrunning [script](./go.sh) to outpace hackers and secure funds from compromised wallets. The (Bash) [script](./go.sh) is intentionally designed with minimal dependencies, requiring only the native tools provided by Linux and [`cast`](https://github.com/foundry-rs/foundry/tree/master/crates/cast) from [Foundry](https://github.com/foundry-rs/foundry).
 
 ## Usage
