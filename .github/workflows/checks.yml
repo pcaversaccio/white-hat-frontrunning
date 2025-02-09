@@ -68,4 +68,4 @@ jobs:
         run: gem install awesome_bot
 
       - name: Validate URLs
-        run: awesome_bot ./*.md ./*.sh community-examples/*.sh --allow-dupe --allow-redirect --request-delay 0.4 --white-list https://relay.flashbots.net
+        run: awesome_bot ./*.md ./*.sh community-examples/**/*.sh --allow-dupe --allow-redirect --request-delay 0.4 --white-list https://relay.flashbots.net
