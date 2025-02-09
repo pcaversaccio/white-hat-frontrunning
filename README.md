@@ -1,4 +1,4 @@
-# White Hat Frontrunning
+# 🥷🏽 White Hat Frontrunning
 
 [![License: AGPL-3.0-only](https://img.shields.io/badge/License-AGPL--3.0--only-blue)](https://www.gnu.org/licenses/agpl-3.0)
 

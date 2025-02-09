@@ -85,7 +85,8 @@ build_transaction() {
     local nonce="$4"
     local gas_limit="$5"
     local gas_price="$6"
-    local data="${7:-}"
+    local priority_gas_price="$7"
+    local data="${8:-}"
 
     # Note that `--gas-price` is the maximum fee per gas for EIP-1559
     # transactions. See here: https://book.getfoundry.sh/reference/cli/cast/mktx.
@@ -95,6 +96,7 @@ build_transaction() {
         --value "$value" \
         --nonce "$nonce" \
         --gas-price "$gas_price" \
+        --priority-gas-price "$priority_gas_price" \
         --gas-limit "$gas_limit"
 }
 
@@ -149,20 +151,39 @@ send_bundle() {
 
 # Main loop; customise as needed. Resubmits the bundle every 8 seconds.
 while true; do
-    # Retrieve and adjust the gas price by 20%.
+    # Retrieve and adjust the gas price by 25%.
     GAS_PRICE=$(cast gas-price --rpc-url "$PROVIDER_URL")
-    GAS_PRICE=$(( (GAS_PRICE * 120) / 100 ))
+    GAS_PRICE=$(((GAS_PRICE * 125) / 100))
+
+    # The following implemented logic is an example of how to dynamically
+    # calculate the maximum priority fee per gas (tip). Please adjust the
+    # logic according to your specific needs and risk tolerance.
+    #
+    # Fetch the current base fee and apply a dynamic buffer decrease of
+    # 0.5% to account for a potential base fee increase in the next block.
+    # Please note that the base fee can increase by a maximum of 12.5% in
+    # the next block. The priority gas price (tip) is then calculated by
+    # subtracting the base fee and buffer from the maximum fee per gas
+    # (i.e., `GAS_PRICE`).
+    BASE_FEE=$(cast base-fee --rpc-url "$PROVIDER_URL")
+    BUFFER_DECREASE=$(((BASE_FEE * 5) / 1000))
+    PRIORITY_GAS_PRICE=$((GAS_PRICE - BASE_FEE - BUFFER_DECREASE))
+
+    # If the calculated priority gas price is negative, set it to 5 gwei.
+    if [[ "$PRIORITY_GAS_PRICE" -lt 0 ]]; then
+        PRIORITY_GAS_PRICE=5000000000
+    fi
 
     # Set the gas limits for the different transfers.
     TRANSFER_ETH=21000
     TRANSFER_TOKEN_GAS=80000
 
     # Calculate the gas cost to fill and convert to ether.
-    GAS_TO_FILL=$(( GAS_PRICE * TRANSFER_TOKEN_GAS ))
+    GAS_TO_FILL=$((GAS_PRICE * TRANSFER_TOKEN_GAS))
     echo "GAS TO FILL: $(cast to-unit $GAS_TO_FILL ether)"
 
     # Get the next block number.
-    BLOCK_NUMBER=$(( $(cast block-number --rpc-url "$PROVIDER_URL") + 1 ))
+    BLOCK_NUMBER=$(($(cast block-number --rpc-url "$PROVIDER_URL") + 1))
 
     # Retrieve the account nonces for the gas and victim wallet.
     GAS_NONCE=$(cast nonce "$GAS_WALLET" --rpc-url "$PROVIDER_URL")
@@ -170,13 +191,13 @@ while true; do
 
     # Build the transactions.
     # Example transfer of ETH to the victim wallet.
-    TX1=$(build_transaction "$GAS_PK" "$VICTIM_WALLET" "$GAS_TO_FILL" "$GAS_NONCE" "$TRANSFER_ETH" "$GAS_PRICE")
+    TX1=$(build_transaction "$GAS_PK" "$VICTIM_WALLET" "$GAS_TO_FILL" "$GAS_NONCE" "$TRANSFER_ETH" "$GAS_PRICE" "$PRIORITY_GAS_PRICE")
 
     # Example transfer of 1 USDC (remember that USDC has 6 decimals) to rescue wallet.
     TRANSFER_TOKEN_AMOUNT=1000000
     RECIPIENT_WALLET="$GAS_WALLET"
     PAYLOAD=$(cast calldata "transfer(address,uint256)" "$RECIPIENT_WALLET" "$TRANSFER_TOKEN_AMOUNT")
-    TX2=$(build_transaction "$VICTIM_PK" "$TOKEN_CONTRACT" 0 "$VICTIM_NONCE" "$TRANSFER_TOKEN_GAS" "$GAS_PRICE" "$PAYLOAD")
+    TX2=$(build_transaction "$VICTIM_PK" "$TOKEN_CONTRACT" 0 "$VICTIM_NONCE" "$TRANSFER_TOKEN_GAS" "$GAS_PRICE" "$PRIORITY_GAS_PRICE" "$PAYLOAD")
 
     echo "TX1: $TX1"
     echo "TX2: $TX2"
