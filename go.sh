@@ -156,8 +156,8 @@ while true; do
     GAS_PRICE=$(((GAS_PRICE * 125) / 100))
 
     # The following implemented logic is an example of how to dynamically
-    # calculate the priority gas price. Please adjust the logic according
-    # to your specific needs and risk tolerance.
+    # calculate the maximum priority fee per gas (tip). Please adjust the
+    # logic according to your specific needs and risk tolerance.
     #
     # Fetch the current base fee and apply a dynamic buffer decrease of
     # 0.5% to account for a potential base fee increase in the next block.
