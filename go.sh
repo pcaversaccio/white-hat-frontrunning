@@ -151,10 +151,14 @@ send_bundle() {
 
 # Main loop; customise as needed. Resubmits the bundle every 8 seconds.
 while true; do
-    # Retrieve and adjust the gas price by 20%.
+    # Retrieve and adjust the gas price by 25%.
     GAS_PRICE=$(cast gas-price --rpc-url "$PROVIDER_URL")
-    GAS_PRICE=$(((GAS_PRICE * 120) / 100))
+    GAS_PRICE=$(((GAS_PRICE * 125) / 100))
 
+    # The following implemented logic is an example of how to dynamically
+    # calculate the priority gas price. Please adjust the logic according
+    # to your specific needs and risk tolerance.
+    #
     # Fetch the current base fee and apply a dynamic buffer decrease of
     # 0.5% to account for a potential base fee increase in the next block.
     # Please note that the base fee can increase by a maximum of 12.5% in
@@ -165,9 +169,9 @@ while true; do
     BUFFER_DECREASE=$(((BASE_FEE * 5) / 1000))
     PRIORITY_GAS_PRICE=$((GAS_PRICE - BASE_FEE - BUFFER_DECREASE))
 
-    # If the calculated priority gas price is negative, set it to 3 gwei.
+    # If the calculated priority gas price is negative, set it to 5 gwei.
     if [[ "$PRIORITY_GAS_PRICE" -lt 0 ]]; then
-        PRIORITY_GAS_PRICE=3000000000
+        PRIORITY_GAS_PRICE=5000000000
     fi
 
     # Set the gas limits for the different transfers.
