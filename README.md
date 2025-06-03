@@ -51,6 +51,40 @@ DEBUG=true ./go.sh
 
 This will print each command before it is executed, which is helpful when troubleshooting.
 
+## EIP-7702-Based Rescue
+
+Using [EIP-7702](https://eips.ethereum.org/EIPS/eip-7702), you can rescue all funds from a compromised wallet using a paymaster and a friendly delegator. There is _no need_ to send ether to the compromised wallet at all. The script [`go_eip7702.sh`](./go_eip7702.sh) handles the full rescue logic. It deploys a Vyper contract called [`recoverooor.vy`](./recoverooor.vy), which acts as the (friendly) delegator to facilitate the asset transfers. All you need to do is set the environment variables `RPC_URL`, `VICTIM_PK`, and `PAYMASTER_PK`, along with the `PAYLOAD` parameter containing the calldata to be executed by the delegator contract.
+
+> [!TIP]
+> To generate the same bytecode for [`recoverooor.vy`](./recoverooor.vy) as the script [`go_eip7702.sh`](./go_eip7702.sh), install the necessary dependencies via `pip install vyper==0.4.2 snekmate==0.1.2rc1` and compile the contract using `vyper recoverooor.vy`.
+
+To get started, configure your `.env` file as shown below:
+
+> [!CAUTION]
+> The private keys below are placeholders and should never be used in a production environment!
+
+```txt
+RPC_URL="https://rpc.flashbots.net"
+VICTIM_PK="0x1234567890"
+PAYMASTER_PK="0xba5Ed"
+```
+
+The `PAYLOAD` parameter in the script [`go_eip7702.sh`](./go_eip7702.sh) must be the calldata that calls the [`recoverooor.vy`](./recoverooor.vy) contract with the appropriate logic. The [`recoverooor.vy`](./recoverooor.vy) contract will be deployed with the paymaster wallet as the `OWNER`. The [`script`](./go_eip7702.sh) also resets the [EIP-7702](https://eips.ethereum.org/EIPS/eip-7702) authorisation at the end, in case the `OWNER` can no longer be trusted in the future.
+
+To perform the rescue, simply run:
+
+```console
+./go_eip7702.sh
+```
+
+To enable _debug mode_, set the `DEBUG` environment variable to `true` before running the [script](./go_eip7702.sh):
+
+```console
+DEBUG=true ./go_eip7702.sh
+```
+
+This will print each command before it is executed, which is helpful when troubleshooting.
+
 ## Community Examples
 
 > [!WARNING]
