@@ -7,3 +7,7 @@
 
 # Bundle output file
 bundle.json
+
+# Python virtual environments
+env
+venv
