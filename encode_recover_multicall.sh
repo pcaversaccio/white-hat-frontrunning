@@ -37,8 +37,8 @@ readonly CALLS="[(0x08210F9170F89Ab7658F0B5E3fF39b0E03C594D4,false,0,"$transfer_
 #       calldata: Bytes[1_024]
 encoded_calldata=$(cast calldata "recover_multicall((address,bool,uint256,bytes)[])" "$CALLS")
 
-# Save the proposal ID to a file.
+# Save the rescue calldata to a file.
 echo "$encoded_calldata" >encoded_calldata.txt
 
 # Output the result.
-echo "Encoded \`data\` struct: $encoded_calldata"
+echo "Rescue calldata: $encoded_calldata"
