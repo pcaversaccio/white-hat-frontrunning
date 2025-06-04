@@ -69,7 +69,7 @@ VICTIM_PK="0x1234567890"
 PAYMASTER_PK="0xba5Ed"
 ```
 
-The `PAYLOAD` parameter in the script [`go_eip7702.sh`](./go_eip7702.sh) must be the calldata that calls the [`recoverooor.vy`](./recoverooor.vy) contract with the appropriate logic. The [`recoverooor.vy`](./recoverooor.vy) contract will be deployed with the paymaster wallet as the `OWNER`. The [`script`](./go_eip7702.sh) also resets the [EIP-7702](https://eips.ethereum.org/EIPS/eip-7702) authorisation at the end, in case the `OWNER` can no longer be trusted in the future.
+The `PAYLOAD` parameter in the script [`go_eip7702.sh`](./go_eip7702.sh) must be the calldata that calls the [`recoverooor.vy`](./recoverooor.vy) contract with the appropriate logic (refer to the [`encode_recover_multicall.sh`](./encode_recover_multicall.sh) script for details on how to encode calldata for the `recover_multicall` function). The [`recoverooor.vy`](./recoverooor.vy) contract will be deployed with the paymaster wallet as the `OWNER`. The [`script`](./go_eip7702.sh) also resets the [EIP-7702](https://eips.ethereum.org/EIPS/eip-7702) authorisation at the end, in case the `OWNER` can no longer be trusted in the future.
 
 To perform the rescue, simply run:
 

@@ -122,11 +122,20 @@ reset() {
 	cast send --private-key "$paymaster_pk" --rpc-url "$RPC_URL" --auth "$authorisation" "$(derive_wallet "$auth_pk")"
 }
 
+echo -e "\n===================================="
+echo "= Step 1: \`recoverooor\` Deployment ="
+echo "===================================="
 # Deploy the `recoverooor` contract with the `PAYMASTER_WALLET` account as `OWNER`.
 deploy_recoverooor "$PAYMASTER_PK"
 
+echo -e "\n=============================="
+echo "= Step 2: Rescue Transaction ="
+echo "=============================="
 # Recover all assets via the predefined calldata `PAYLOAD`.
 recover "$VICTIM_PK" "$PAYMASTER_PK"
 
+echo -e "\n========================================"
+echo "= Step 3: Reset EIP-7702 Authorisation ="
+echo "========================================"
 # Reset the EIP-7702 authorisation in case the `OWNER` can no longer be trusted in the future.
 reset "$VICTIM_PK" "$PAYMASTER_PK"
