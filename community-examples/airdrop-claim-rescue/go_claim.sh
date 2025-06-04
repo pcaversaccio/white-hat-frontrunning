@@ -83,7 +83,7 @@ build_transaction() {
 	local data="${7:-}"
 
 	# Note that `--gas-price` is the maximum fee per gas for EIP-1559
-	# transactions. See here: https://book.getfoundry.sh/cast/reference/cast-mktx/.
+	# transactions. See here: https://getfoundry.sh/cast/reference/cast-mktx/.
 	cast mktx --private-key "$from_pk" \
 		--rpc-url "$PROVIDER_URL" \
 		"$to_address" $([[ -n "$data" ]] && echo -n "$data") \
