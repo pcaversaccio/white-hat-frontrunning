@@ -112,6 +112,7 @@ recover() {
 	local paymaster_pk="$2"
 	local authorisation=$(sign_eip7702_authorisation "$auth_pk" "$RECOVEROOOR_ADDRESS")
 	cast send --private-key "$paymaster_pk" --rpc-url "$RPC_URL" --auth "$authorisation" "$(derive_wallet "$auth_pk")" "$PAYLOAD"
+	sleep 20
 }
 
 # Utility function to reset an EIP-7702 authorisation.

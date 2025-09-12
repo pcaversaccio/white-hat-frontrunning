@@ -51,6 +51,9 @@ DEBUG=true ./go.sh
 
 This will print each command before it is executed, which is helpful when troubleshooting.
 
+> [!WARNING]
+> The _debug mode_ is **not** a dry-run. It will still send the rescue transactions, only with extra output.
+
 ## EIP-7702-Based Rescue
 
 Using [EIP-7702](https://eips.ethereum.org/EIPS/eip-7702), you can rescue all funds from a compromised wallet using a paymaster and a friendly delegator. There is _no need_ to send ether to the compromised wallet at all. The script [`go_eip7702.sh`](./go_eip7702.sh) handles the full rescue logic. It deploys a Vyper contract called [`recoverooor.vy`](./recoverooor.vy), which acts as the (friendly) delegator to facilitate the asset transfers. All you need to do is set the environment variables `RPC_URL`, `VICTIM_PK`, and `PAYMASTER_PK`, along with the `PAYLOAD` parameter containing the calldata to be executed by the delegator contract.
@@ -94,3 +97,7 @@ This will print each command before it is executed, which is helpful when troubl
 > I have reviewed these examples as part of the PR process, but they haven't been fully tested. Please ensure a thorough review before using them!
 
 The [`community-examples/`](./community-examples/) directory contains customised versions of the primary [`go.sh`](./go.sh) script, tailored for a variety of rescue scenarios.
+
+## Real-World Rescues
+
+- [Degen Rescue](https://basescan.org/tx/0x344237ab211385caa2db08a9bb20a012bf0c0c0c4c6919005dd28fb18d08625a)
