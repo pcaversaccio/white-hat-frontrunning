@@ -88,6 +88,9 @@ DEBUG=true ./go_eip7702.sh
 
 This will print each command before it is executed, which is helpful when troubleshooting.
 
+> [!WARNING]
+> The _debug mode_ is **not** a dry-run. It will still send the rescue transactions, only with extra output.
+
 > [!TIP]
 > To make an authorisation replayable across all chains, simply set the chain ID to `0` (see [here](https://eips.ethereum.org/EIPS/eip-7702#protection-from-malleability-cross-chain)). While `cast` does not currently support this feature, you can use my [`ethers`](https://docs.ethers.org/v6/)-based [script](https://github.com/pcaversaccio/raw-tx/blob/bd86ddb1311bffe8e24ddea961bc09e4952cf4f6/scripts/sign-eip7702.ts#L61-L73) to generate a replayable authorisation. This authorisation can then be passed into the main [script](./go_eip7702.sh).
 
