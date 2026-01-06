@@ -104,3 +104,4 @@ The [`community-examples/`](./community-examples/) directory contains customised
 ## Real-World Rescues
 
 - [Degen Rescue](https://basescan.org/tx/0x344237ab211385caa2db08a9bb20a012bf0c0c0c4c6919005dd28fb18d08625a)
+- [Zyfai Rescue](https://arbiscan.io/tx/0x966ccc006e135e481b3aa4bb9645f0e05cc19dfa33baf3643d4fcb3b7c2f20b9)
