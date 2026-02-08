@@ -43,7 +43,7 @@ Finally, execute the [script](./go.sh):
 ./go.sh
 ```
 
-To enable _debug mode_, set the `DEBUG` environment variable to `true` before runni:ng the [script](./go.sh):
+To enable _debug mode_, set the `DEBUG` environment variable to `true` before running the [script](./go.sh):
 
 ```console
 DEBUG=true ./go.sh
