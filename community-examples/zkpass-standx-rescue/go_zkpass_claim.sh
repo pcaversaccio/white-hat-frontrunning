@@ -7,12 +7,20 @@
 # @license GNU Affero General Public License v3.0 only
 # @author pcaversaccio
 
+# Enable strict error handling:
+# -E: Inherit `ERR` traps in functions and subshells.
+# -e: Exit immediately if a command exits with a non-zero status.
+# -u: Treat unset variables as an error and exit.
+# -o pipefail: Return the exit status of the first failed command in a pipeline.
 set -Eeuo pipefail
 
+# Enable debug mode if the environment variable `DEBUG` is set to `true`.
 if [[ "${DEBUG:-false}" == "true" ]]; then
+	# Print each command before executing it.
 	set -x
 fi
 
+# Load environment variables from `.env` file.
 if [[ -f .env ]]; then
 	set -a
 	. ./.env
@@ -22,6 +30,7 @@ else
 	exit 1
 fi
 
+# Utility function to check if a variable is set without exposing its value.
 check_var() {
 	if [[ -z "${!1:-}" ]]; then
 		echo "Error: $1 is not set in the .env file"
@@ -44,6 +53,7 @@ vars=(
 	CLAIM_PAYLOAD
 )
 
+# Check if the required environment variables are set.
 for var in "${vars[@]}"; do
 	check_var "$var"
 done
@@ -51,7 +61,7 @@ done
 READ_RPC_URL="${READ_RPC_URL:-${PROVIDER_URL:-}}"
 
 if [[ -z "$READ_RPC_URL" ]]; then
-	echo "Error: set READ_RPC_URL to a standard Ethereum mainnet RPC endpoint."
+	echo "Error: set \`READ_RPC_URL\` to a standard Ethereum mainnet RPC endpoint."
 	exit 1
 fi
 
@@ -73,6 +83,7 @@ readonly CLAIM_PAYLOAD="${CLAIM_PAYLOAD}"
 echo "Private keys and relay URL loaded successfully!"
 echo "Read RPC URL is set"
 
+# Utility function to derive a wallet address.
 derive_wallet() {
 	local pk="$1"
 	cast wallet address --private-key "$pk"
@@ -120,6 +131,7 @@ print(json.dumps(builders, separators=(",", ":")))
 PY
 }
 
+# Utility function to create the Flashbots signature (https://docs.flashbots.net/flashbots-auction/advanced/rpc-endpoint#authentication).
 create_flashbots_signature() {
 	local payload="$1"
 	local private_key="$2"
@@ -133,6 +145,7 @@ create_flashbots_signature() {
 	echo "$signature"
 }
 
+# Utility function to build a transaction.
 build_transaction() {
 	local from_pk="$1"
 	local to_address="$2"
@@ -153,6 +166,7 @@ build_transaction() {
 		--gas-limit "$gas_limit"
 }
 
+# Utility function to create the bundle JSON.
 create_bundle_json() {
 	local method="$1"
 	local block_number="$2"
@@ -189,17 +203,6 @@ send_bundle_request() {
 	fi
 
 	curl -sS -X POST "${headers[@]}" -d "$bundle_json" "$RELAY_URL"
-}
-
-verify_dependencies() {
-	if ! command -v cast >/dev/null 2>&1; then
-		echo "Error: cast is required but not installed."
-		exit 1
-	fi
-	if ! command -v python3 >/dev/null 2>&1; then
-		echo "Error: python3 is required but not installed."
-		exit 1
-	fi
 }
 
 validate_claim_payload() {
@@ -288,7 +291,7 @@ maybe_simulate_bundle() {
 	simulation_response=$(send_bundle_request "$simulation_json")
 	echo "$simulation_response"
 	if [[ "$simulation_response" == *'"error"'* && "$simulation_response" == *"rpc method is not whitelisted"* ]]; then
-		echo "Warning: relay does not support eth_callBundle on this endpoint, continuing without simulation."
+		echo "Warning: relay does not support \`eth_callBundle\` on this endpoint, continuing without simulation."
 	fi
 	echo
 }
@@ -304,7 +307,7 @@ send_bundle_for_target_blocks() {
 		target_block=$((start_block + offset))
 		bundle_json=$(create_bundle_json "eth_sendBundle" "$target_block" "$txs_string")
 		echo -e "Bundle JSON for block $target_block:\n$bundle_json"
-		echo "$bundle_json" > bundle.json
+		echo "$bundle_json" >bundle.json
 
 		send_response=$(send_bundle_request "$bundle_json")
 		echo -e "Relay response for block $target_block:\n$send_response"
@@ -330,7 +333,7 @@ ensure_gas_wallet_can_fund_bundle() {
 	total_required=$((gas_to_fill + tx1_gas_cost))
 
 	if [[ "$gas_wallet_balance" -lt "$total_required" ]]; then
-		echo "Error: GAS_WALLET balance is insufficient for this bundle."
+		echo "Error: \`GAS_WALLET\` balance is insufficient for this bundle."
 		echo "Current balance: $(cast to-unit "$gas_wallet_balance" ether) ETH"
 		echo "Required for TX1 value + TX1 gas: $(cast to-unit "$total_required" ether) ETH"
 		echo "Shortfall: $(cast to-unit "$((total_required - gas_wallet_balance))" ether) ETH"
@@ -345,6 +348,17 @@ victim_nonce_advanced() {
 	[[ "$current_nonce" -ge $((initial_nonce + 2)) ]]
 }
 
+verify_dependencies() {
+	if ! command -v cast >/dev/null 2>&1; then
+		echo "Error: \`cast\` is required but not installed."
+		exit 1
+	fi
+	if ! command -v python3 >/dev/null 2>&1; then
+		echo "Error: \`python3\` is required but not installed."
+		exit 1
+	fi
+}
+
 verify_dependencies
 
 VICTIM_WALLET=$(derive_wallet "$VICTIM_PK")
@@ -357,7 +371,7 @@ readonly FLASHBOTS_WALLET
 
 EXPECTED_VICTIM_WALLET="${EXPECTED_VICTIM_WALLET:-}"
 if [[ -n "$EXPECTED_VICTIM_WALLET" && "$(lower_hex "$VICTIM_WALLET")" != "$(lower_hex "$EXPECTED_VICTIM_WALLET")" ]]; then
-	echo "Error: VICTIM_PK does not derive to EXPECTED_VICTIM_WALLET."
+	echo "Error: \`VICTIM_PK\` does not derive to \`EXPECTED_VICTIM_WALLET\`."
 	exit 1
 fi
 

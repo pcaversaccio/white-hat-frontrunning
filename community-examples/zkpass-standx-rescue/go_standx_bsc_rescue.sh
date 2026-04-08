@@ -4,12 +4,23 @@
 # Skills are what matters. Not cheap talk. #
 ############################################
 
+# @license GNU Affero General Public License v3.0 only
+# @author pcaversaccio
+
+# Enable strict error handling:
+# -E: Inherit `ERR` traps in functions and subshells.
+# -e: Exit immediately if a command exits with a non-zero status.
+# -u: Treat unset variables as an error and exit.
+# -o pipefail: Return the exit status of the first failed command in a pipeline.
 set -Eeuo pipefail
 
+# Enable debug mode if the environment variable `DEBUG` is set to `true`.
 if [[ "${DEBUG:-false}" == "true" ]]; then
+	# Print each command before executing it.
 	set -x
 fi
 
+# Load environment variables from `.env` file.
 if [[ -f .env ]]; then
 	set -a
 	. ./.env
@@ -19,6 +30,7 @@ else
 	exit 1
 fi
 
+# Utility function to check if a variable is set without exposing its value.
 check_var() {
 	if [[ -z "${!1:-}" ]]; then
 		echo "Error: $1 is not set in the .env file"
@@ -41,6 +53,7 @@ vars=(
 	WITHDRAW_PAYLOAD
 )
 
+# Check if the required environment variables are set.
 for var in "${vars[@]}"; do
 	check_var "$var"
 done
@@ -70,6 +83,7 @@ echo "Read RPC URL is set"
 echo "Private RPC URL is set"
 echo "Bundle RPC URL is set"
 
+# Utility function to derive a wallet address.
 derive_wallet() {
 	local pk="$1"
 	cast wallet address --private-key "$pk"
@@ -104,6 +118,7 @@ print((a * b) // c)
 PY
 }
 
+# Utility function to build a legacy transaction.
 build_legacy_transaction() {
 	local from_pk="$1"
 	local to_address="$2"
@@ -132,6 +147,7 @@ json_rpc_request() {
 		"$rpc_url"
 }
 
+# Utility function to create the bundle JSON.
 create_bundle_json() {
 	local max_block_number="$1"
 	local tx1="$2"
@@ -153,7 +169,7 @@ maybe_simulate_bundle() {
 	fi
 
 	simulation_json=$(create_bundle_json "$block_number" "$tx1" "$tx2")
-	echo "Simulation skipped: public 48 Club RPC does not expose bundle simulation; proceeding with eth_sendBundle semantics."
+	echo "Simulation skipped: public 48 Club RPC does not expose bundle simulation; proceeding with \`eth_sendBundle\` semantics."
 	echo "Bundle preview for up-to block $block_number: $simulation_json"
 	simulation_response='{"skipped":true}'
 }
@@ -168,7 +184,7 @@ send_bundle_for_target_blocks() {
 
 	max_block_number=$((current_block + MAX_BLOCK_AHEAD))
 	bundle_json=$(create_bundle_json "$max_block_number" "$tx1" "$tx2")
-	echo "Bundle request with maxBlockNumber $max_block_number: $bundle_json"
+	echo "Bundle request with \`maxBlockNumber\` $max_block_number: $bundle_json"
 	response=$(json_rpc_request "eth_sendBundle" "$bundle_json" "$BUNDLE_RPC_URL")
 	echo "Bundle response: $response"
 }
@@ -177,7 +193,8 @@ query_bundle_gas_floor() {
 	local response
 	local result
 	response=$(json_rpc_request "eth_gasPrice" "[]" "$BUNDLE_RPC_URL")
-	result=$(python3 - "$response" <<'PY'
+	result=$(
+		python3 - "$response" <<'PY'
 import json, sys
 try:
     payload = json.loads(sys.argv[1])
@@ -188,20 +205,9 @@ result = payload.get("result")
 if isinstance(result, str):
     print(result)
 PY
-)
+	)
 	if [[ -n "$result" ]]; then
 		normalize_uint "$result"
-	fi
-}
-
-verify_dependencies() {
-	if ! command -v cast >/dev/null 2>&1; then
-		echo "Error: cast is required but not installed."
-		exit 1
-	fi
-	if ! command -v python3 >/dev/null 2>&1; then
-		echo "Error: python3 is required but not installed."
-		exit 1
 	fi
 }
 
@@ -309,7 +315,7 @@ ensure_gas_wallet_can_fund() {
 	total_required=$((gas_to_fill + tx_cost))
 
 	if [[ "$gas_wallet_balance" -lt "$total_required" ]]; then
-		echo "Error: GAS_WALLET balance is insufficient."
+		echo "Error: \`GAS_WALLET\` balance is insufficient."
 		echo "Current balance: $(cast to-unit "$gas_wallet_balance" ether) BNB"
 		echo "Required: $(cast to-unit "$total_required" ether) BNB"
 		echo "Shortfall: $(cast to-unit "$((total_required - gas_wallet_balance))" ether) BNB"
@@ -413,7 +419,7 @@ watch_and_rescue_bundle() {
 			fi
 
 			if [[ "$rescue_amount" -gt "$current_balance" ]]; then
-				echo "Error: RESCUE_TRANSFER_AMOUNT exceeds current DUSD balance."
+				echo "Error: \`RESCUE_TRANSFER_AMOUNT\` exceeds current DUSD balance."
 				exit 1
 			fi
 
@@ -462,11 +468,22 @@ watch_and_rescue_bundle() {
 	done
 }
 
+verify_dependencies() {
+	if ! command -v cast >/dev/null 2>&1; then
+		echo "Error: \`cast\` is required but not installed."
+		exit 1
+	fi
+	if ! command -v python3 >/dev/null 2>&1; then
+		echo "Error: \`python3\` is required but not installed."
+		exit 1
+	fi
+}
+
 verify_dependencies
 
 if [[ "$MODE" == *"_bundle" && "$BUNDLE_RPC_URL" == "https://rpc.48.club" ]]; then
 	echo "Error: bundle modes require 48 Club's Puissant endpoint, not the privacy RPC."
-	echo "Set BUNDLE_RPC_URL=\"https://puissant-bsc.48.club\" in .env and try again."
+	echo "Set \`BUNDLE_RPC_URL=\"https://puissant-bsc.48.club\"\` in .env and try again."
 	exit 1
 fi
 
@@ -478,7 +495,7 @@ readonly GAS_WALLET
 
 EXPECTED_VICTIM_WALLET="${EXPECTED_VICTIM_WALLET:-}"
 if [[ -n "$EXPECTED_VICTIM_WALLET" && "$(lower_hex "$VICTIM_WALLET")" != "$(lower_hex "$EXPECTED_VICTIM_WALLET")" ]]; then
-	echo "Error: VICTIM_PK does not derive to EXPECTED_VICTIM_WALLET."
+	echo "Error: \`VICTIM_PK\` does not derive to \`EXPECTED_VICTIM_WALLET\`."
 	exit 1
 fi
 
@@ -491,14 +508,14 @@ echo "StandX highway: $STANDX_HIGHWAY"
 echo "DUSD token: $DUSD_TOKEN"
 
 case "$MODE" in
-	request_withdraw_bundle)
-		request_withdraw_bundle
-		;;
-	watch_and_rescue_bundle)
-		watch_and_rescue_bundle
-		;;
-	*)
-		echo "Error: MODE must be either request_withdraw_bundle or watch_and_rescue_bundle."
-		exit 1
-		;;
+request_withdraw_bundle)
+	request_withdraw_bundle
+	;;
+watch_and_rescue_bundle)
+	watch_and_rescue_bundle
+	;;
+*)
+	echo "Error: \`MODE\` must be either \`request_withdraw_bundle\` or \`watch_and_rescue_bundle\`."
+	exit 1
+	;;
 esac
